@@ -1,6 +1,8 @@
 
+const Products = require("../models/ProductModel.js");
 const User = require("../models/UserModel.js")
 const bcrypt = require("bcryptjs")
+const {Op} = require('sequelize')
 
 exports.getUsers = async(req, res) =>{
     try {
@@ -16,13 +18,40 @@ exports.getUsers = async(req, res) =>{
 
 exports.getUserById = async (req, res) =>{
     try {
-        const response = await User.findOne({
-            attributes:['uuid','name','email','role'],
+        const product = await User.findOne({
+            
             where: {
                 uuid: req.params.id
             }
         })
 
+        if(!product) {
+            res.status(400).json({
+                message: "user tidak ada"
+            })
+        }
+
+        let response
+        if(req.role === "admin") {
+            response = await Products.findOne({
+                attributes: ['uuid', 'name', 'price'],
+                where: {
+                    id: product.id
+                },
+                include: [{
+                    model: User,
+                    attributes: ['name', 'email']
+                }]
+            })
+
+        } else {
+            response = await Products.findOne({
+                attributes: ['uuid', 'name', 'price'],
+                where: {
+                    [Op.and]: [{id: product.id}, {userId: req.userId}]
+                }
+            })
+        }
         res.status(200).json(response)
 
     } catch (error) {
