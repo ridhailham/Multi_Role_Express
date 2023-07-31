@@ -143,7 +143,7 @@ exports.updateProduct = async (req, res) =>{
         } else {
             if(req.userId !== product.userId) {
                 return res.status(403).json({
-                    message: "akses terlarang, anda bukan admin"
+                    message: "akses terlarang"
                 })
             }
             await Product.update(
@@ -154,7 +154,9 @@ exports.updateProduct = async (req, res) =>{
             }) 
         }
         
-        res.status(200).json(response)
+        res.status(200).json({
+            message: "product update successfully"
+        })
 
     } catch (error) {
         res.status(500).json({
@@ -163,6 +165,51 @@ exports.updateProduct = async (req, res) =>{
     }
 }
 
-exports.deleteProduct = (req, res) =>{
-    
+exports.deleteProduct = async (req, res) =>{
+    try {
+
+        const product = await Product.findOne({
+            where: {
+                uuid: req.params.id
+            }
+        })
+
+        if(!product) {
+            return res.status(400).json({
+                message: "data tidak ditemukan"
+            })
+        }
+
+        const { name, price } = req.body
+        
+        if(req.role === "admin") {
+            await Product.destroy({
+                where: {
+                    id: product.id
+                }
+            })
+
+        } else {
+            if(req.userId !== product.userId) {
+                return res.status(403).json({
+                    message: "akses terlarang"
+                })
+            }
+            await Product.destroy(
+                {
+                where: {
+                    [Op.and]: [{id: product.id}, {userId: req.userId}]
+                }, 
+            }) 
+        }
+        
+        res.status(200).json({
+            message: "product deleted successfully"
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        })
+    }
 }
