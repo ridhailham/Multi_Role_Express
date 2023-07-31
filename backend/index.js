@@ -1,12 +1,13 @@
-import express from "express";
-import cors from "cors";
-import session from "express-session";
-import dotenv from "dotenv";
-import db from "./config/Database.js";
-import SequelizeStore from "connect-session-sequelize";
-import UserRoute from "./routes/UserRoute.js";
-import ProductRoute from "./routes/ProductRoute.js";
-import AuthRoute from "./routes/AuthRoute.js";
+const express = require("express")
+const cors = require("cors")
+const session = require("express-session")
+const dotenv = require("dotenv")
+const db = require("./config/Database.js")
+const SequelizeStore = require("connect-session-sequelize")
+const UserRoute =  require("./routes/UserRoute.js")
+const ProductRoute = require("./routes/ProductRoute.js")
+const AuthRoute = require("./routes/AuthRoute.js")
+
 dotenv.config();
 
 const app = express();
@@ -17,31 +18,41 @@ const store = new sessionStore({
     db: db
 });
 
+app.use(session({
+    secret: 'your-secret-key',
+    resave: false,
+    store: store,
+    saveUninitialized: true
+}))
+
+
+
 // (async()=>{
 //     await db.sync();
 // })();
 
-app.use(session({
-    secret: process.env.SESS_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    store: store,
-    cookie: {
-        secure: 'auto'
-    }
-}));
+db.sync()
+.then(() => {
+    console.log("database connected");
+}).catch(() => {
+    console.log("database failed");
+})
 
-app.use(cors({
+
+app.use(cors(
+    {
     credentials: true,
     origin: 'http://localhost:3000'
-}));
+}
+));
 app.use(express.json());
 app.use(UserRoute);
 app.use(ProductRoute);
-app.use(AuthRoute);
+app.use(AuthRoute)
+
 
 // store.sync();
 
-app.listen(process.env.APP_PORT, ()=> {
+app.listen(4000, ()=> {
     console.log('Server up and running...');
 });
