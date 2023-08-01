@@ -2,11 +2,14 @@ const express = require("express")
 const { 
     Login, 
     Me, 
-    logOut } = require("../controllers/Auth.js")
+    logOut,
+    Register } = require("../controllers/Auth.js")
 
 
 
 const router = express.Router();
+
+router.post('/register', Register)
 
 router.get('/me', Me)
 router.post('/login', Login)

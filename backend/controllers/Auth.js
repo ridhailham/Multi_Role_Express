@@ -19,8 +19,6 @@ exports.Login = async (req, res) => {
         });
     }
 
-    console.log("ini ", req.body.password, " dan ", user.password);
-
     // Menggunakan 'await' di depan 'bcrypt.compare' karena ini adalah operasi asinkron
     let isPasswordValid = await bcrypt.compare(req.body.password, user.password);
 
@@ -83,6 +81,59 @@ exports.logOut = (req, res) => {
         })
     })
 }
+
+
+
+exports.Register = async (req, res) => {
+    const { name, email, password, confPassword, role } = req.body;
+  
+    if (name == null || email == null || password == null || confPassword == null || role == null) {
+      return res.status(400).json({
+        message: "mohon diisi dengan lengkap",
+      });
+    }
+  
+    if (password !== confPassword) {
+      return res.status(400).json({ msg: "Password dan Confirm Password tidak cocok" });
+    }
+  
+    // Email validation using regular expression for Gmail addresses
+    const isGmail = /@gmail\.com$/.test(email);
+    if (!isGmail) {
+      return res.status(400).json({ msg: "Email harus menggunakan Gmail" });
+    }
+   
+    const isUserExist = await User.findOne({
+      where: {
+        email: req.body.email,
+      },
+    });
+  
+    if (isUserExist) {
+      return res.status(400).json({
+        message: "email sudah digunakan",
+      });
+    }
+
+
+    const hashPassword = await bcrypt.hash(password, 8)
+
+
+    try {
+      User.create({
+        name: name,
+        email: email,
+        password: hashPassword,
+        role: role,
+      });
+      res.status(201).json({ msg: "Register Berhasil" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
+  };
+
+
+
 
 // exports.logOut = (req, res) => {
 

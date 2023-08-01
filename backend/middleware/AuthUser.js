@@ -12,6 +12,7 @@ exports.verifyUser = async (req, res, next) => {
         where: {
             uuid: req.session.userId
         }
+
     })
 
     if(!user) {
@@ -43,7 +44,7 @@ exports.adminOnly = async (req, res, next) => {
 
     if(user.role !== "admin") {
         return res.status(403).json({
-            message: "akses terlarang, anda bukan admin"
+            message: "akses terlarang, anda bukan"
         })
     }
 
